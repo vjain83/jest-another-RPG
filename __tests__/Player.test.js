@@ -1,28 +1,42 @@
+const Player = require('../lib/Player.js');
+const Potion = require('../lib/Potion.js');
 
-const Potion = require('../lib/Potion');
-const Player = require('../lib/Player');
+jest.mock('../lib/Potion.js');
 
-jest.mock('../lib/Potion');
-
-test('create a player object', () => {
+test('creates a player object', () => {
     const player = new Player('Dave');
 
     expect(player.name).toBe('Dave');
     expect(player.health).toEqual(expect.any(Number));
-    expect(player.agility).toEqual(expect.any(Number));
     expect(player.strength).toEqual(expect.any(Number));
-    expect(player.inventory).toEqual(
-        expect.arrayContaining([expect.any(Object)])
-    )
+    expect(player.agility).toEqual(expect.any(Number));
+
+    expect(player.inventory).toEqual(expect.arrayContaining([expect.any(Object)]));
 });
 
-test("get player's status as an object", () => {
+test("gets player's health value", () => {
+    const player = new Player('Dave');
+
+    expect(player.getHealth()).toEqual(expect.stringContaining(player.health.toString()));
+});
+
+test("gets player's stats as an object", () => {
     const player = new Player('Dave');
 
     expect(player.getStats()).toHaveProperty('potions');
     expect(player.getStats()).toHaveProperty('health');
     expect(player.getStats()).toHaveProperty('strength');
     expect(player.getStats()).toHaveProperty('agility');
+});
+
+test('checks if player is alive or not', () => {
+    const player = new Player('Dave');
+
+    expect(player.isAlive()).toBeTruthy();
+
+    player.health = 0;
+
+    expect(player.isAlive()).toBeFalsy();
 });
 
 test('gets inventory from player or returns false', () => {
@@ -35,19 +49,31 @@ test('gets inventory from player or returns false', () => {
     expect(player.getInventory()).toEqual(false);
 });
 
-test("gets player's health value", () => {
+test('adds a potion to the inventory', () => {
     const player = new Player('Dave');
+    const oldCount = player.inventory.length;
 
-    expect(player.getHealth()).toEqual(expect.stringContaining(player.health.toString()));
+    player.addPotion(new Potion());
+
+    expect(player.inventory.length).toBeGreaterThan(oldCount);
 });
-test('checks if player is alive or not', () => {
+
+test('uses a potion from inventory', () => {
     const player = new Player('Dave');
+    player.inventory = [new Potion(), new Potion(), new Potion()];
+    const oldCount = player.inventory.length;
 
-    expect(player.isAlive()).toBeTruthy();
+    player.usePotion(1);
 
-    player.health = 0;
+    expect(player.inventory.length).toBeLessThan(oldCount);
+});
 
-    expect(player.isAlive()).toBeFalsy();
+test("gets player's attack value", () => {
+    const player = new Player('Dave');
+    player.strength = 10;
+
+    expect(player.getAttackValue()).toBeGreaterThanOrEqual(5);
+    expect(player.getAttackValue()).toBeLessThanOrEqual(15);
 });
 
 test("subtracts from player's health", () => {
@@ -60,31 +86,5 @@ test("subtracts from player's health", () => {
 
     player.reduceHealth(99999);
 
-    //expect(player.health).toBe(0);
-});
-
-
-test("gets player's attack value", () => {
-    const player = new Player('Dave');
-    player.strength = 10;
-
-    expect(player.getAttackValue()).toBeGreaterThanOrEqual(5);
-    expect(player.getAttackValue()).toBeLessThanOrEqual(15);
-});
-test('adds a potion to the inventory', () => {
-    const player = new Player('Dave');
-    const oldCount = player.inventory.length;
-
-    player.addPotion(new Potion());
-
-    expect(player.inventory.length).toBeGreaterThan(oldCount);
-});
-test('uses a potion from inventory', () => {
-    const player = new Player('Dave');
-    player.inventory = [new Potion(), new Potion(), new Potion()];
-    const oldCount = player.inventory.length;
-
-    player.usePotion(1);
-
-    expect(player.inventory.length).toBeLessThan(oldCount);
+    expect(player.health).toBe(0);
 });
